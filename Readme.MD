@@ -14,7 +14,7 @@ The system integrates a **fine-tuned multilingual transformer model**, external 
 ### Live Demo
 
 Frontend:  
-https://fakenews-detector.vercel.app
+fakenews-detector-five.vercel.app
 
 API Endpoint:  
 https://fakenews-detector-yi5b.onrender.com
