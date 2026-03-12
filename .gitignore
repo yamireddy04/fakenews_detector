@@ -1,0 +1,12 @@
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.factcheck_cache/
+checkpoints/
+frontend/node_modules/
+frontend/build/
+.env
+*.zip
+.DS_Store
+*.safetensors
