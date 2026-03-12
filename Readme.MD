@@ -4,8 +4,6 @@
 ![PyTorch](https://img.shields.io/badge/PyTorch-Deep%20Learning-red)
 ![Transformers](https://img.shields.io/badge/HuggingFace-Transformers-yellow)
 ![FastAPI](https://img.shields.io/badge/API-FastAPI-green)
-![License](https://img.shields.io/badge/License-MIT-lightgrey)
-![Status](https://img.shields.io/badge/Status-Research%20Prototype-orange)
 
 An end-to-end misinformation detection system that combines **natural language processing, real-time fact-checking APIs, and propagation signal analysis** to determine whether a news claim is likely **True, False, or Unverified**.
 
@@ -13,7 +11,7 @@ The system integrates a **fine-tuned multilingual transformer model**, external 
 
 ---
 
-## Live Demo
+### Live Demo
 
 Frontend:  
 https://fakenews-detector.vercel.app
@@ -26,7 +24,7 @@ https://github.com/yamireddy04/fakenews_detector
 
 ---
 
-# Problem Statement
+## Problem Statement
 
 Misinformation spreads rapidly across digital platforms, often reaching large audiences before fact-checking organizations can respond. Traditional approaches to detecting fake news typically rely on a **single signal**, such as textual classification, which limits reliability.
 
@@ -40,7 +38,7 @@ By integrating these signals, the system can produce a **more robust and explain
 
 ---
 
-# Why It Matters
+## Why It Matters
 
 Misinformation has serious consequences in modern societies. False or misleading information can influence:
 
@@ -60,13 +58,13 @@ This project demonstrates how **AI systems can assist in combating misinformatio
 
 ---
 
-# Dataset
+## Dataset
 
 The classification model is trained using multiple misinformation datasets to improve generalization.
 
 Primary datasets include:
 
-**LIAR Dataset**
+***LIAR Dataset***
 
 - ~12,000 labeled political statements
 - Originally contains six truthfulness categories
@@ -75,7 +73,7 @@ Primary datasets include:
   - False
   - Unverified
 
-**Additional Sources**
+***Additional Sources***
 
 - FakeNewsNet
 - CLEF misinformation datasets
@@ -85,7 +83,7 @@ These datasets contain **short claims, political statements, and news headlines*
 
 ---
 
-# Methodology
+## Methodology
 
 The system uses a **multi-signal pipeline** that analyzes a claim through three independent modules.
 
@@ -105,7 +103,7 @@ The outputs from these components are combined in a **fusion layer** to generate
 
 ---
 
-# Architecture
+## Architecture
 
 ```
 Input (title + body + optional graph)
@@ -125,15 +123,15 @@ Input (title + body + optional graph)
 
 Key components:
 
-- **XLM-RoBERTa transformer classifier**
-- **Google Fact Check Tools API integration**
-- **ClaimBuster fallback scoring**
-- **Graph-based propagation analysis**
-- **Weighted ensemble fusion**
+- ***XLM-RoBERTa transformer classifier***
+- ***Google Fact Check Tools API integration***
+- ***ClaimBuster fallback scoring***
+- ***Graph-based propagation analysis***
+- ***Weighted ensemble fusion***
 
 ---
 
-# Results
+## Results
 
 Evaluation on the LIAR dataset shows that misinformation detection remains a **challenging NLP task**.
 
@@ -147,7 +145,7 @@ The multi-signal architecture improves system robustness by combining model pred
 
 ---
 
-# Project Structure
+## Project Structure
 
 ```
 fake-news-detector/
@@ -171,7 +169,7 @@ fake-news-detector/
 
 ---
 
-# How to Run
+## How to Run
 
 ### Clone the Repository
 
@@ -223,7 +221,7 @@ curl -X POST http://localhost:8000/detect \
 
 ---
 
-# Limitations
+## Limitations
 
 Despite promising results, the system has limitations:
 
@@ -236,7 +234,7 @@ Misinformation detection is fundamentally complex and cannot be solved perfectly
 
 ---
 
-# Future Work
+## Future Work
 
 Potential improvements include:
 
@@ -249,7 +247,7 @@ Potential improvements include:
 
 ---
 
-# Summary
+## Summary
 
 This project presents a **multi-signal AI system for fake news detection** that integrates:
 
