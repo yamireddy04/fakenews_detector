@@ -76,11 +76,17 @@ def get_pipeline():
         _graph_analyzer = PropagationAnalyzer()
 
         if model_path:
-            from classifier.model import FakeNewsClassifier
-            _classifier = FakeNewsClassifier.load(model_path)
-            logger.info(f"Loaded BERT model from {model_path}")
+            model_file = os.path.join(model_path, "config.json")
+            if os.path.exists(model_file):
+                from classifier.model import FakeNewsClassifier
+                _classifier = FakeNewsClassifier.load(model_path)
+                logger.info(f"Loaded BERT model from {model_path}")
+            else:
+                logger.warning(f"Model files not found at {model_path} — BERT disabled")
+                _classifier = None
         else:
             logger.warning("No MODEL_CHECKPOINT set — BERT component disabled")
+            _classifier = None
 
         _pipeline = FakeNewsDetectionPipeline(
             classifier=_classifier,
