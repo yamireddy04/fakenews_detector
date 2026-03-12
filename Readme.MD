@@ -1,16 +1,111 @@
-# Fake News Detector
+# Fake News Detection System
 
-Multilingual fake news detection system combining three complementary signals:
+![Python](https://img.shields.io/badge/Python-3.10+-blue)
+![PyTorch](https://img.shields.io/badge/PyTorch-Deep%20Learning-red)
+![Transformers](https://img.shields.io/badge/HuggingFace-Transformers-yellow)
+![FastAPI](https://img.shields.io/badge/API-FastAPI-green)
+![License](https://img.shields.io/badge/License-MIT-lightgrey)
+![Status](https://img.shields.io/badge/Status-Research%20Prototype-orange)
 
-| Component | Model | Signal |
-|-----------|-------|--------|
-| **BERT Classifier** | `xlm-roberta-base` fine-tuned | Linguistic/semantic patterns |
-| **Fact-Check API** | Google Fact Check Tools + ClaimBuster | External verification |
-| **Propagation Graph** | NetworkX heuristics + optional GNN (PyG) | Spread pattern analysis |
+An end-to-end misinformation detection system that combines **natural language processing, real-time fact-checking APIs, and propagation signal analysis** to determine whether a news claim is likely **True, False, or Unverified**.
+
+The system integrates a **fine-tuned multilingual transformer model**, external fact-checking signals, and graph-based propagation features into a **fusion layer** that produces a confidence-weighted verdict.
 
 ---
 
-## Architecture
+## Live Demo
+
+Frontend:  
+https://fakenews-detector.vercel.app
+
+API Endpoint:  
+https://fakenews-detector-yi5b.onrender.com
+
+Repository:  
+https://github.com/yamireddy04/fakenews_detector
+
+---
+
+# Problem Statement
+
+Misinformation spreads rapidly across digital platforms, often reaching large audiences before fact-checking organizations can respond. Traditional approaches to detecting fake news typically rely on a **single signal**, such as textual classification, which limits reliability.
+
+This project aims to address the problem by building a **multi-signal misinformation detection system** that combines:
+
+- Transformer-based language understanding
+- Real-time fact-checking APIs
+- Graph-based propagation analysis
+
+By integrating these signals, the system can produce a **more robust and explainable verdict** about the credibility of a news claim.
+
+---
+
+# Why It Matters
+
+Misinformation has serious consequences in modern societies. False or misleading information can influence:
+
+- Elections and political discourse
+- Public health decisions
+- Financial markets
+- Social stability
+
+Manual fact-checking cannot scale to the volume and speed of information generated online. Automated tools that assist in identifying potentially misleading content can support:
+
+- Journalists verifying claims
+- Researchers studying information flows
+- Platforms flagging suspicious content
+- Users evaluating the credibility of news
+
+This project demonstrates how **AI systems can assist in combating misinformation at scale**.
+
+---
+
+# Dataset
+
+The classification model is trained using multiple misinformation datasets to improve generalization.
+
+Primary datasets include:
+
+**LIAR Dataset**
+
+- ~12,000 labeled political statements
+- Originally contains six truthfulness categories
+- Labels consolidated into three categories for this system:
+  - True
+  - False
+  - Unverified
+
+**Additional Sources**
+
+- FakeNewsNet
+- CLEF misinformation datasets
+- Custom CSV ingestion support
+
+These datasets contain **short claims, political statements, and news headlines**, which makes the task significantly harder than typical text classification tasks.
+
+---
+
+# Methodology
+
+The system uses a **multi-signal pipeline** that analyzes a claim through three independent modules.
+
+### Transformer-Based Text Classification
+
+A multilingual transformer model predicts the probability that a statement is fake or real based on linguistic features and contextual understanding.
+
+### Fact-Checking Verification
+
+The pipeline queries external fact-checking services to determine whether the claim has already been verified by trusted publishers.
+
+### Propagation Signal Analysis
+
+Graph-based features analyze structural patterns that often characterize the spread of misinformation, including credibility signals and temporal propagation dynamics.
+
+The outputs from these components are combined in a **fusion layer** to generate the final verdict.
+
+---
+
+# Architecture
 
 ```
 Input (title + body + optional graph)
@@ -25,195 +120,34 @@ Input (title + body + optional graph)
                            │
                            ▼
                   [Fusion Layer]     Weighted ensemble → final verdict
+
 ```
 
-**Fusion weights (tunable):** BERT 45% · Fact-check 40% · Graph 15%
+Key components:
+
+- **XLM-RoBERTa transformer classifier**
+- **Google Fact Check Tools API integration**
+- **ClaimBuster fallback scoring**
+- **Graph-based propagation analysis**
+- **Weighted ensemble fusion**
 
 ---
 
-## Setup
+# Results
 
-### 1. Install dependencies
+Evaluation on the LIAR dataset shows that misinformation detection remains a **challenging NLP task**.
 
-```bash
-pip install -r requirements.txt
+Observed performance:
 
-# Optional: PyTorch Geometric for GNN-based graph classification
-pip install torch-geometric
-```
+Validation accuracy: approximately **54%**
 
-### 2. Environment variables
+This performance is consistent with baseline transformer results on the dataset, which typically range between **55% and 62%**.
 
-```bash
-export GOOGLE_FACTCHECK_API_KEY="your_key"   # https://developers.google.com/fact-check/tools/api
-export CLAIMBUSTER_API_KEY="your_key"        # https://idir.uta.edu/claimbuster/ (optional fallback)
-export MODEL_CHECKPOINT="checkpoints/best"   # path to fine-tuned model (optional)
-```
+The multi-signal architecture improves system robustness by combining model predictions with external verification signals.
 
 ---
 
-## Training the BERT Classifier
-
-### Option A — Fine-tune on LIAR dataset
-
-```python
-from classifier.model import FakeNewsClassifier
-from classifier.datasets import load_liar, split_records
-
-records = load_liar("data/liar/train.tsv")
-train, val, test = split_records(records)
-
-clf = FakeNewsClassifier(model_name="xlm-roberta-base", num_labels=3)
-history = clf.fine_tune(train, val, epochs=3, batch_size=16, lr=2e-5)
-clf.save("checkpoints/liar-v1")
-```
-
-### Option B — Fine-tune on FakeNewsNet
-
-```python
-from classifier.datasets import load_fakenewsnet
-
-records = load_fakenewsnet("data/fakenewsnet/")
-train, val, test = split_records(records, train_ratio=0.8)
-clf.fine_tune(train, val, epochs=4)
-```
-
-### Option C — Your own CSV
-
-```python
-from classifier.datasets import load_csv
-
-records = load_csv("data/my_dataset.csv", text_col="title", label_col="fake")
-```
-
-### Recommended datasets
-
-| Dataset | Size | Languages | Labels | Download |
-|---------|------|-----------|--------|----------|
-| LIAR | 12.8K | EN | 6-way | [link](https://www.cs.ucsb.edu/~william/data/liar_dataset.zip) |
-| FakeNewsNet | 23K+ | EN | Binary | [GitHub](https://github.com/KaiDMML/FakeNewsNet) |
-| CLEF 2023 | 20K+ | Multi | Binary | [GitLab](https://gitlab.com/checkthat_lab) |
-| MultiFC | 36K | EN | 27-way | [link](https://competitions.codalab.org/competitions/21163) |
-
----
-
-## Full Pipeline Usage
-
-```python
-from classifier.model import FakeNewsClassifier
-from factcheck.client import FactChecker
-from graph.propagation import PropagationAnalyzer
-from pipeline.orchestrator import FakeNewsDetectionPipeline
-
-# Initialize
-clf = FakeNewsClassifier.load("checkpoints/best")
-fc = FactChecker(google_api_key="YOUR_KEY")
-analyzer = PropagationAnalyzer()
-
-pipeline = FakeNewsDetectionPipeline(
-    classifier=clf,
-    fact_checker=fc,
-    graph_analyzer=analyzer,
-    weights={"bert": 0.45, "factcheck": 0.40, "graph": 0.15},
-)
-
-# Detect
-result = pipeline.detect(
-    title="Scientists discover miracle weight-loss pill",
-    body="A new pill promises to...",
-    propagation_graph={
-        "root_id": "tweet_001",
-        "nodes": [
-            {"id": "tweet_001", "is_bot": False, "followers": 5000, "verified": False, "timestamp": 1700000000},
-            {"id": "tweet_002", "is_bot": True,  "followers": 12,   "verified": False, "timestamp": 1700000120},
-        ],
-        "edges": [
-            {"from": "tweet_001", "to": "tweet_002", "type": "retweet", "timestamp": 1700000120}
-        ],
-    }
-)
-
-print(result.verdict)       # "FAKE" | "REAL" | "UNVERIFIED"
-print(result.confidence)    # 0.87
-print(result.explanation)   # Human-readable fusion summary
-```
-
----
-
-## REST API
-
-```bash
-uvicorn api.server:app --host 0.0.0.0 --port 8000
-```
-
-### Endpoints
-
-```
-POST /detect           Full pipeline
-POST /detect/batch     Batch (up to 50 articles)
-POST /classify         BERT only
-POST /factcheck        Fact-check a claim
-POST /graph            Graph analysis only
-GET  /health           Liveness check
-```
-
-### Example
-
-```bash
-curl -X POST http://localhost:8000/detect \
-  -H "Content-Type: application/json" \
-  -d '{"title": "Miracle cure discovered", "body": "Details..."}'
-```
-
----
-
-## Graph Analysis
-
-The propagation analyzer extracts these features and computes a `fake_propagation_score`:
-
-| Feature | Fake pattern | Real pattern |
-|---------|--------------|--------------|
-| `early_spread_ratio` | High (viral burst) | Gradual |
-| `bot_ratio` | High | Low |
-| `max_breadth / max_depth` | Wide & shallow | Deeper trees |
-| `verified_ratio` | Low | Higher |
-| `avg_follower_count` | Low (coordinated inauthentic) | Variable |
-
-Based on findings from [Vosoughi et al., Science 2018](https://www.science.org/doi/10.1126/science.aap9559).
-
-### Optional: GNN Classifier (PyTorch Geometric)
-
-```python
-from graph.propagation import PropagationGNN, graph_to_pyg, PropagationAnalyzer
-
-gnn = PropagationGNN(in_channels=5, hidden=64, num_classes=2)
-pyg_data = graph_to_pyg(graph, PropagationAnalyzer(), label=1)
-logits = gnn(pyg_data)
-```
-
----
-
-## Evaluation
-
-```python
-# Evaluate on test set
-metrics = pipeline.evaluate(test_records)
-# {'REAL': {'precision': 0.89, 'recall': 0.91, 'f1': 0.90, 'support': 450},
-#  'FAKE': {'precision': 0.87, 'recall': 0.84, 'f1': 0.85, 'support': 380},
-#  'UNVERIFIED': {...}, 'accuracy': 0.88}
-```
-
----
-
-## Tests
-
-```bash
-pytest tests/ -v
-```
-
----
-
-## Project Structure
+# Project Structure
 
 ```
 fake-news-detector/
@@ -232,13 +166,99 @@ fake-news-detector/
 │   └── test_pipeline.py  # Full test suite (mocked)
 ├── requirements.txt
 └── README.md
+
+````
+
+---
+
+# How to Run
+
+### Clone the Repository
+
+```bash
+git clone https://github.com/yamireddy04/fakenews_detector
+cd fakenews_detector
+````
+
+---
+
+### Create Virtual Environment
+
+```bash
+python -m venv venv
+source venv/bin/activate
 ```
 
 ---
 
-## Extending
+### Install Dependencies
 
-- **Add a new dataset**: implement a loader in `classifier/datasets.py` returning `[{"text", "body", "label"}]`
-- **Change fusion weights**: pass `weights={"bert": 0.6, "factcheck": 0.4, "graph": 0.0}` to the pipeline
-- **Add a language**: XLM-RoBERTa handles 100 languages natively; pass `language="de"` etc.
-- **Swap BERT model**: change `MODEL_NAME` in `classifier/model.py` to e.g. `"facebook/xlm-roberta-xl"`
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+### Run the API Server
+
+```bash
+uvicorn api.server:app --host 0.0.0.0 --port 8000 --reload
+```
+
+The API will be available at:
+
+```
+http://localhost:8000
+```
+
+---
+
+### Example Request
+
+```bash
+curl -X POST http://localhost:8000/detect \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Scientists discover coffee cures all diseases", "body": ""}'
+```
+
+---
+
+# Limitations
+
+Despite promising results, the system has limitations:
+
+* The LIAR dataset is relatively small and noisy.
+* Fact-checking APIs do not cover all claims.
+* Graph propagation signals are simplified in the prototype.
+* Transformer inference requires significant compute resources.
+
+Misinformation detection is fundamentally complex and cannot be solved perfectly by automated systems.
+
+---
+
+# Future Work
+
+Potential improvements include:
+
+* Training on larger misinformation datasets
+* Expanding multilingual claim detection
+* Integrating Graph Neural Networks for deeper propagation modeling
+* Adding model explainability features
+* Deploying the trained checkpoint on Hugging Face Hub
+* Optimizing inference for faster real-time detection
+
+---
+
+# Summary
+
+This project presents a **multi-signal AI system for fake news detection** that integrates:
+
+* Transformer-based language models
+* Real-time fact-checking APIs
+* Graph-based propagation signals
+
+Instead of relying on a single classifier, the system combines multiple verification signals to produce **confidence-weighted credibility assessments**.
+
+The result is a scalable and extensible framework for **automated misinformation detection and verification**.
+
+---
