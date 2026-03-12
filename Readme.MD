@@ -66,7 +66,7 @@ Primary datasets include:
 
 ***LIAR Dataset***
 
-- ~12,000 labeled political statements
+- ~120 labeled political statements
 - Originally contains six truthfulness categories
 - Labels consolidated into three categories for this system:
   - True
@@ -123,11 +123,11 @@ Input (title + body + optional graph)
 
 Key components:
 
-- ***XLM-RoBERTa transformer classifier***
-- ***Google Fact Check Tools API integration***
-- ***ClaimBuster fallback scoring***
-- ***Graph-based propagation analysis***
-- ***Weighted ensemble fusion***
+- **XLM-RoBERTa transformer classifier**
+- **Google Fact Check Tools API integration**
+- **ClaimBuster fallback scoring**
+- **Graph-based propagation analysis**
+- **Weighted ensemble fusion**
 
 ---
 
@@ -258,5 +258,3 @@ This project presents a **multi-signal AI system for fake news detection** that 
 Instead of relying on a single classifier, the system combines multiple verification signals to produce **confidence-weighted credibility assessments**.
 
 The result is a scalable and extensible framework for **automated misinformation detection and verification**.
-
----
