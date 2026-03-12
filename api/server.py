@@ -206,3 +206,7 @@ async def graph_only(req: GraphRequest):
         return asdict(features)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
