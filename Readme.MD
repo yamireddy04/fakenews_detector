@@ -1,151 +1,129 @@
-# Fake News Detection System
+# 🔍 Fake News Detection System
 
-![Python](https://img.shields.io/badge/Python-3.10+-blue)
-![PyTorch](https://img.shields.io/badge/PyTorch-Deep%20Learning-red)
-![Transformers](https://img.shields.io/badge/HuggingFace-Transformers-yellow)
-![FastAPI](https://img.shields.io/badge/API-FastAPI-green)
+![Stack](https://img.shields.io/badge/Stack-Python%20%7C%20PyTorch%20%7C%20Transformers%20%7C%20FastAPI-1b2e2b?style=flat-square)
+![Model](https://img.shields.io/badge/Model-XLM--RoBERTa%20%7C%20Hugging%20Face-d9c5b2?style=flat-square)
+![APIs](https://img.shields.io/badge/APIs-Google%20Fact%20Check%20%7C%20ClaimBuster-4285f4?style=flat-square)
+![Status](https://img.shields.io/badge/Status-Active-7ecb84?style=flat-square)
 
-An end-to-end misinformation detection system that combines **natural language processing, real-time fact-checking APIs, and propagation signal analysis** to determine whether a news claim is likely **True, False, or Unverified**.
+An end-to-end misinformation detection system that combines natural language processing, real-time fact-checking APIs, and propagation signal analysis to determine whether a news claim is likely **True**, **False**, or **Unverified**.
 
-The system integrates a **fine-tuned multilingual transformer model**, external fact-checking signals, and graph-based propagation features into a **fusion layer** that produces a confidence-weighted verdict.
+Built with **Python**, **PyTorch**, **Transformers**, and **FastAPI**.
 
----
-
-### Live Demo
-
-Frontend:  
-https://fakenews-detector-five.vercel.app/
-
-API Endpoint:  
-https://fakenews-detector-yi5b.onrender.com
-
-Repository:  
-https://github.com/yamireddy04/fakenews_detector
+**Live Demo:** https://fakenews-detector-five.vercel.app/
+**API Endpoint:** https://fakenews-detector-yi5b.onrender.com
+**Repository:** https://github.com/yamireddy04/fakenews_detector
 
 ---
 
-## Problem Statement
+## 1️⃣ Problem Statement
 
-Misinformation spreads rapidly across digital platforms, often reaching large audiences before fact-checking organizations can respond. Traditional approaches to detecting fake news typically rely on a **single signal**, such as textual classification, which limits reliability.
+Misinformation spreads rapidly across digital platforms, often reaching large audiences before fact-checking organizations can respond. Traditional detection approaches typically rely on a single signal — such as textual classification — which limits reliability and explainability.
 
-This project aims to address the problem by building a **multi-signal misinformation detection system** that combines:
+This project builds a **multi-signal misinformation detection system** that combines:
 
 - Transformer-based language understanding
-- Real-time fact-checking APIs
-- Graph-based propagation analysis
+- Real-time fact-checking API verification
+- Graph-based propagation signal analysis
 
-By integrating these signals, the system can produce a **more robust and explainable verdict** about the credibility of a news claim.
+By integrating these signals through a fusion layer, the system produces a more robust and explainable credibility verdict for any given news claim.
 
 ---
 
-## Why It Matters
+## 2️⃣ Why It Matters
 
-Misinformation has serious consequences in modern societies. False or misleading information can influence:
+Misinformation has measurable consequences in modern society. False or misleading content influences:
 
 - Elections and political discourse
 - Public health decisions
-- Financial markets
-- Social stability
+- Financial markets and economic behavior
+- Social stability and public trust
 
-Manual fact-checking cannot scale to the volume and speed of information generated online. Automated tools that assist in identifying potentially misleading content can support:
+Manual fact-checking cannot scale to the volume and velocity of content generated online. Automated systems that assist in flagging suspicious claims support:
 
-- Journalists verifying claims
-- Researchers studying information flows
-- Platforms flagging suspicious content
-- Users evaluating the credibility of news
+- Journalists verifying claims in real time
+- Researchers studying information propagation patterns
+- Platforms identifying suspicious content before it spreads
+- Everyday users assessing the credibility of news sources
 
-This project demonstrates how **AI systems can assist in combating misinformation at scale**.
-
----
-
-## Dataset
-
-The classification model is trained using multiple misinformation datasets to improve generalization.
-
-Primary datasets include:
-
-***LIAR Dataset***
-
-- ~120 labeled political statements
-- Originally contains six truthfulness categories
-- Labels consolidated into three categories for this system:
-  - True
-  - False
-  - Unverified
-
-***Additional Sources***
-
-- FakeNewsNet
-- CLEF misinformation datasets
-- Custom CSV ingestion support
-
-These datasets contain **short claims, political statements, and news headlines**, which makes the task significantly harder than typical text classification tasks.
+This project demonstrates how AI systems can assist in combating misinformation at scale, using a principled multi-signal architecture rather than a black-box classifier.
 
 ---
 
-## Methodology
+## 3️⃣ Dataset
 
-The system uses a **multi-signal pipeline** that analyzes a claim through three independent modules.
+The classification model is trained on multiple misinformation datasets to improve generalization across domains.
 
-### Transformer-Based Text Classification
+| Dataset | Size | Notes |
+|---|---|---|
+| LIAR Dataset | ~120K labeled statements | Political claims; six truthfulness categories consolidated into True / False / Unverified |
+| FakeNewsNet | Variable | News article-level annotations |
+| CLEF Misinformation Datasets | Variable | Cross-lingual claim verification |
+| Custom CSV | User-defined | Flexible ingestion for domain-specific claims |
 
-A multilingual transformer model predicts the probability that a statement is fake or real based on linguistic features and contextual understanding.
-
-### Fact-Checking Verification
-
-The pipeline queries external fact-checking services to determine whether the claim has already been verified by trusted publishers.
-
-### Propagation Signal Analysis
-
-Graph-based features analyze structural patterns that often characterize the spread of misinformation, including credibility signals and temporal propagation dynamics.
-
-The outputs from these components are combined in a **fusion layer** to generate the final verdict.
+The LIAR dataset serves as the primary benchmark. Its short political statements and noisy labels make it a significantly harder task than standard sentiment or topic classification.
 
 ---
 
-## Architecture
+## 4️⃣ Methodology
+
+The system uses a **multi-signal pipeline** that analyzes each claim through three independent modules before combining outputs in a fusion layer.
 
 ```
 Input (title + body + optional graph)
         │
-        ├─► [BERT Classifier]        xlm-roberta-base → FAKE/REAL/UNVERIFIED + confidence
+        ├─► [Transformer Classifier]
+        │   xlm-roberta-base → FAKE / REAL / UNVERIFIED + confidence score
         │
-        ├─► [Fact-Check API]         Google FCTAPI → claim verdicts from publishers
-        │          └─ fallback: ClaimBuster check-worthiness scoring
+        ├─► [Fact-Check API]
+        │   Google Fact Check Tools API → publisher verdicts
+        │   └─ Fallback: ClaimBuster check-worthiness scoring
         │
-        └─► [Graph Analyzer]         Structural + temporal + credibility features
-                   └─ optional: PropagationGNN (PyTorch Geometric)
-                           │
-                           ▼
-                  [Fusion Layer]     Weighted ensemble → final verdict
-
+        └─► [Graph Analyzer]
+            Structural + temporal + credibility propagation features
+            └─ Optional: PropagationGNN (PyTorch Geometric)
+                    │
+                    ▼
+           [Fusion Layer]
+           Weighted ensemble → final verdict + confidence score
 ```
 
-Key components:
+**Pipeline Steps:**
 
-- **XLM-RoBERTa transformer classifier**
-- **Google Fact Check Tools API integration**
-- **ClaimBuster fallback scoring**
-- **Graph-based propagation analysis**
-- **Weighted ensemble fusion**
-
----
-
-## Results
-
-Evaluation on the LIAR dataset shows that misinformation detection remains a **challenging NLP task**.
-
-Observed performance:
-
-Validation accuracy: approximately **54%**
-
-This performance is consistent with baseline transformer results on the dataset, which typically range between **55% and 62%**.
-
-The multi-signal architecture improves system robustness by combining model predictions with external verification signals.
+1. Input claim (title + optional body) is received via the FastAPI endpoint.
+2. The transformer classifier encodes the claim and predicts a probability distribution over True / False / Unverified.
+3. The fact-checking module queries Google Fact Check Tools API; falls back to ClaimBuster if no match is found.
+4. The graph analyzer extracts structural propagation features (credibility signals, temporal dynamics).
+5. The fusion layer combines all three signal outputs via weighted ensemble to produce the final verdict.
 
 ---
 
-## Project Structure
+## 5️⃣ Model Architecture
+
+**Core Components**
+
+| Component | Technology |
+|---|---|
+| Transformer Classifier | XLM-RoBERTa (`xlm-roberta-base`) |
+| Fact-Checking | Google Fact Check Tools API + ClaimBuster fallback |
+| Propagation Analysis | Graph feature extraction + optional PropagationGNN (PyTorch Geometric) |
+| Fusion Layer | Weighted ensemble combining all three signal outputs |
+| API Layer | FastAPI (REST) |
+
+**Architecture Diagram**
+
+```
+XLM-RoBERTa (fine-tuned)     →  P(True / False / Unverified)
+Google FCTAPI / ClaimBuster   →  Publisher verdict signals
+Graph Propagation Analyzer    →  Structural credibility features
+                                        │
+                                        ▼
+                              Weighted Fusion Layer
+                                        │
+                                        ▼
+                          Final Verdict + Confidence Score
+```
+
+**Project Structure**
 
 ```
 fake-news-detector/
@@ -164,54 +142,78 @@ fake-news-detector/
 │   └── test_pipeline.py  # Full test suite (mocked)
 ├── requirements.txt
 └── README.md
-
-````
+```
 
 ---
 
-## How to Run
+## 6️⃣ Results
 
-### Clone the Repository
+**Classification Performance**
+
+| Metric | Value |
+|---|---|
+| Validation Accuracy (LIAR) | ~54% |
+| Baseline Transformer Range (LIAR) | 55–62% |
+
+Performance is consistent with published baseline transformer results on the LIAR dataset. The multi-signal architecture improves system robustness by supplementing model predictions with external verification signals, reducing false certainty on unseen claims.
+
+The fusion layer demonstrates that combining external fact-checking signals with classifier confidence produces more conservative and explainable verdicts compared to a classifier-only approach.
+
+---
+
+## 7️⃣ Limitations
+
+- **Dataset Size:** The LIAR dataset is relatively small and noisy, which limits generalization to broader domains.
+- **Fact-Check API Coverage:** External fact-checking APIs do not cover all claims, particularly recent or niche topics.
+- **Simplified Graph Features:** Propagation signal analysis is a prototype implementation; full GNN integration is not deployed in production.
+- **Compute Requirements:** Transformer inference requires significant compute resources; latency increases under load.
+- **Fundamental Task Complexity:** Misinformation detection is an inherently difficult problem — automated systems can assist but cannot replace human judgment.
+
+---
+
+## 8️⃣ Future Work
+
+- Training on larger and more diverse misinformation datasets
+- Expanding multilingual claim detection using multilingual transformer variants
+- Integrating Graph Neural Networks (PyTorch Geometric) for deeper propagation modeling
+- Adding model explainability features (SHAP, attention visualization)
+- Deploying the trained checkpoint on Hugging Face Hub for reproducibility
+- Optimizing inference pipeline for real-time detection at scale
+- Adding a model evaluation dashboard with precision, recall, and F1-score breakdowns
+
+---
+
+## 9️⃣ How to Run
+
+**1. Clone the Repository**
 
 ```bash
 git clone https://github.com/yamireddy04/fakenews_detector
 cd fakenews_detector
-````
+```
 
----
-
-### Create Virtual Environment
+**2. Create Virtual Environment**
 
 ```bash
 python -m venv venv
 source venv/bin/activate
 ```
 
----
-
-### Install Dependencies
+**3. Install Dependencies**
 
 ```bash
 pip install -r requirements.txt
 ```
 
----
-
-### Run the API Server
+**4. Run the API Server**
 
 ```bash
 uvicorn api.server:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-The API will be available at:
+API available at: `http://localhost:8000`
 
-```
-http://localhost:8000
-```
-
----
-
-### Example Request
+**5. Example Request**
 
 ```bash
 curl -X POST http://localhost:8000/detect \
@@ -221,40 +223,19 @@ curl -X POST http://localhost:8000/detect \
 
 ---
 
-## Limitations
+## 🔟 Conclusion
 
-Despite promising results, the system has limitations:
-
-* The LIAR dataset is relatively small and noisy.
-* Fact-checking APIs do not cover all claims.
-* Graph propagation signals are simplified in the prototype.
-* Transformer inference requires significant compute resources.
-
-Misinformation detection is fundamentally complex and cannot be solved perfectly by automated systems.
+This project presents a multi-signal AI system for fake news detection that moves beyond single-classifier approaches by integrating transformer-based language models, real-time fact-checking APIs, and graph-based propagation signals into a unified fusion pipeline. The architecture prioritizes explainability and robustness over raw accuracy, acknowledging the fundamental complexity of misinformation detection as a task. The result is a scalable and extensible framework that demonstrates principled AI system design — combining multiple evidence sources with principled fusion — as a foundation for more reliable automated verification systems.
 
 ---
 
-## Future Work
+## 🛠 Tech Stack
 
-Potential improvements include:
-
-* Training on larger misinformation datasets
-* Expanding multilingual claim detection
-* Integrating Graph Neural Networks for deeper propagation modeling
-* Adding model explainability features
-* Deploying the trained checkpoint on Hugging Face Hub
-* Optimizing inference for faster real-time detection
-
----
-
-## Summary
-
-This project presents a **multi-signal AI system for fake news detection** that integrates:
-
-* Transformer-based language models
-* Real-time fact-checking APIs
-* Graph-based propagation signals
-
-Instead of relying on a single classifier, the system combines multiple verification signals to produce **confidence-weighted credibility assessments**.
-
-The result is a scalable and extensible framework for **automated misinformation detection and verification**.
+| Layer | Technology |
+|---|---|
+| Language Model | XLM-RoBERTa (via Hugging Face Transformers) |
+| Deep Learning | PyTorch, PyTorch Geometric |
+| Fact-Checking | Google Fact Check Tools API, ClaimBuster |
+| API | FastAPI |
+| Frontend | HTML / CSS / JS (Vercel) |
+| Backend Hosting | Render |
