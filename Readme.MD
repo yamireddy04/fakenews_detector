@@ -9,7 +9,7 @@ An end-to-end misinformation detection system that combines natural language pro
 
 Built with **Python**, **PyTorch**, **Transformers**, and **FastAPI**.
 
-** 🌐 Live Demo:** https://fakenews-detector-five.vercel.app/
+### 🌐 Live Demo: https://fakenews-detector-five.vercel.app/
 
 ---
 
