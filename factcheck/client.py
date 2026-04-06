@@ -19,20 +19,16 @@ from urllib.error import HTTPError, URLError
 
 logger = logging.getLogger(__name__)
 
-# ---------------------------------------------------------------------------
-# Data models
-# ---------------------------------------------------------------------------
-
 @dataclass
 class FactCheckResult:
     claim: str
-    rating: str               # e.g. "False", "Mostly True", "Misleading"
-    rating_normalized: str    # "FAKE" | "REAL" | "UNVERIFIED"
+    rating: str               
+    rating_normalized: str    
     publisher: str
     url: str
     review_date: str
     language: str
-    confidence: float         # 0.0–1.0, derived from rating
+    confidence: float        
 
 
 RATING_NORMALIZATION = {
@@ -67,11 +63,6 @@ def _normalize_rating(rating: str) -> tuple[str, float]:
             return v
     return ("UNVERIFIED", 0.30)
 
-
-# ---------------------------------------------------------------------------
-# Disk cache
-# ---------------------------------------------------------------------------
-
 class DiskCache:
     def __init__(self, cache_dir: str = ".factcheck_cache", ttl_hours: int = 24):
         self.cache_dir = Path(cache_dir)
@@ -92,11 +83,6 @@ class DiskCache:
     def set(self, query: str, results: list):
         f = self.cache_dir / (self._key(query) + ".json")
         f.write_text(json.dumps({"ts": time.time(), "results": results}))
-
-
-# ---------------------------------------------------------------------------
-# Google Fact Check Tools API
-# ---------------------------------------------------------------------------
 
 class GoogleFactCheckClient:
     """
@@ -168,11 +154,6 @@ class GoogleFactCheckClient:
                 )
         return results
 
-
-# ---------------------------------------------------------------------------
-# ClaimBuster fallback
-# ---------------------------------------------------------------------------
-
 class ClaimBusterClient:
     """
     ClaimBuster API — scores sentences for check-worthiness.
@@ -199,11 +180,6 @@ class ClaimBusterClient:
         except Exception as e:
             logger.error(f"ClaimBuster error: {e}")
             return []
-
-
-# ---------------------------------------------------------------------------
-# High-level FactChecker orchestrator
-# ---------------------------------------------------------------------------
 
 class FactChecker:
     """
@@ -258,7 +234,6 @@ class FactChecker:
                 "summary": "No fact-check data found for this claim.",
             }
 
-        # Aggregate: weighted vote by confidence
         vote_weights = {"FAKE": 0.0, "REAL": 0.0, "UNVERIFIED": 0.0}
         for r in results:
             vote_weights[r.rating_normalized] += r.confidence
@@ -290,7 +265,6 @@ class FactChecker:
         claims = self._extract_claims(title, body)
         results = [self.check(c, language) for c in claims]
 
-        # Filter out NO_DATA results
         valid = [r for r in results if r["verdict"] != "NO_DATA"]
         if not valid:
             return {
@@ -300,7 +274,6 @@ class FactChecker:
                 "summary": "No verifiable claims found.",
             }
 
-        # Majority verdict by confidence-weighted vote
         agg = {"FAKE": 0.0, "REAL": 0.0, "UNVERIFIED": 0.0}
         for r in valid:
             agg[r["verdict"]] += r["confidence"]
@@ -324,12 +297,10 @@ class FactChecker:
         For production, replace with a dedicated claim-detection model.
         """
         sentences = [title.strip()] if title else []
-        # Split body on sentence boundaries
         for sent in re.split(r"(?<=[.!?])\s+", body):
             sent = sent.strip()
             if len(sent) < 20:
                 continue
-            # Prefer sentences with numbers, named entities, or modal verbs
             if re.search(r"\b(\d+%?|\$[\d,.]+|is|are|was|were|will|has|have)\b", sent):
                 sentences.append(sent)
         return sentences[:max_claims]

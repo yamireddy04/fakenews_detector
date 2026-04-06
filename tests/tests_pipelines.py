@@ -12,11 +12,6 @@ import json
 from unittest.mock import MagicMock, patch
 from dataclasses import asdict
 
-
-# ---------------------------------------------------------------------------
-# Classifier tests
-# ---------------------------------------------------------------------------
-
 class TestFakeNewsClassifier:
 
     def test_dataset_tokenization(self):
@@ -45,7 +40,6 @@ class TestFakeNewsClassifier:
         records = [{"text": "Title", "body": "Long body text here.", "label": 0}]
         ds = FakeNewsDataset(records, tok, max_len=128)
         item = ds[0]
-        # Decoding should contain both parts
         decoded = tok.decode(item["input_ids"])
         assert "Title" in decoded
 
@@ -70,11 +64,6 @@ class TestFakeNewsClassifier:
         for r in results:
             assert r["label"] in ("REAL", "FAKE", "UNVERIFIED")
 
-
-# ---------------------------------------------------------------------------
-# Dataset loader tests
-# ---------------------------------------------------------------------------
-
 class TestDatasetLoaders:
 
     def test_liar_loader(self, tmp_path):
@@ -87,8 +76,8 @@ class TestDatasetLoaders:
         )
         records = load_liar(tsv)
         assert len(records) == 2
-        assert records[0]["label"] == 1  # false → FAKE
-        assert records[1]["label"] == 0  # true → REAL
+        assert records[0]["label"] == 1 
+        assert records[1]["label"] == 0  
 
     def test_csv_loader(self, tmp_path):
         """Generic CSV loader should handle bool and int labels."""
@@ -106,11 +95,6 @@ class TestDatasetLoaders:
         assert len(train) == 80
         assert len(val) == 10
         assert len(test) == 10
-
-
-# ---------------------------------------------------------------------------
-# Fact-check tests (mocked API)
-# ---------------------------------------------------------------------------
 
 class TestFactChecker:
 
@@ -157,7 +141,6 @@ class TestFactChecker:
             mock_urlopen.return_value = mock_resp
 
             client = GoogleFactCheckClient(api_key="fake_key", cache_dir="/tmp/fc_test")
-            # Bypass cache
             client.cache.get = lambda q: None
             results = client.search("vaccine autism")
 
@@ -167,7 +150,7 @@ class TestFactChecker:
 
     def test_factchecker_aggregate(self):
         from factcheck.client import FactChecker, FactCheckResult
-        fc = FactChecker()  # no API keys
+        fc = FactChecker()  
         fc.google = MagicMock()
         fc.google.search.return_value = [
             FactCheckResult("claim", "False", "FAKE", "Snopes", "url", "2023-01-01", "en", 0.95),
@@ -184,11 +167,6 @@ class TestFactChecker:
         claims = FactChecker._extract_claims(title, body, max_claims=3)
         assert title in claims
         assert len(claims) <= 3
-
-
-# ---------------------------------------------------------------------------
-# Graph analysis tests
-# ---------------------------------------------------------------------------
 
 class TestPropagationAnalyzer:
 
@@ -236,20 +214,14 @@ class TestPropagationAnalyzer:
         assert feats.num_nodes == 5
         assert feats.num_edges == 4
         assert feats.max_depth == 2
-        assert feats.bot_ratio == 0.6  # 3 bots / 5 nodes
+        assert feats.bot_ratio == 0.6  
         assert 0.0 <= feats.fake_propagation_score <= 1.0
 
     def test_high_bot_ratio_scores_high(self, sample_graph_dict):
         from graph.propagation import GraphBuilder, PropagationAnalyzer
         g = GraphBuilder.from_dict(sample_graph_dict)
         feats = PropagationAnalyzer().analyze(g)
-        # 60% bots should push score above 0.4
         assert feats.fake_propagation_score > 0.4
-
-
-# ---------------------------------------------------------------------------
-# Pipeline integration tests (all mocked)
-# ---------------------------------------------------------------------------
 
 class TestPipeline:
 
@@ -322,11 +294,6 @@ class TestPipeline:
         assert "accuracy" in metrics
         assert "FAKE" in metrics
         assert "REAL" in metrics
-
-
-# ---------------------------------------------------------------------------
-# FastAPI endpoint tests
-# ---------------------------------------------------------------------------
 
 class TestAPIEndpoints:
 

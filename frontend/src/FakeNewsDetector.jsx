@@ -37,10 +37,6 @@ const DEMO_ARTICLES = [
   },
 ];
 
-// ---------------------------------------------------------------------------
-// Small reusable components
-// ---------------------------------------------------------------------------
-
 function ConfidenceBar({ value, color, label }) {
   const [width, setWidth] = useState(0);
   useEffect(() => {
@@ -119,10 +115,6 @@ function ComponentCard({ title, icon, accent, children }) {
     </div>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Result panel
-// ---------------------------------------------------------------------------
 
 function ResultPanel({ result }) {
   const cfg = VERDICT_CONFIG[result.verdict] || VERDICT_CONFIG.UNKNOWN;
@@ -260,10 +252,6 @@ function ResultPanel({ result }) {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Main App
-// ---------------------------------------------------------------------------
-
 export default function App() {
   const [activeDemo, setActiveDemo]   = useState(null);
   const [customTitle, setCustomTitle] = useState("");
@@ -273,7 +261,6 @@ export default function App() {
   const [error, setError]             = useState("");
   const [apiStatus, setApiStatus]     = useState("unknown");
 
-  // Check backend health on load
   useEffect(() => {
     fetch(`${API_URL}/health`)
       .then(r => r.ok ? setApiStatus("ok") : setApiStatus("down"))

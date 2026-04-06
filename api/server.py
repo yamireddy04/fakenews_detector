@@ -25,10 +25,6 @@ from pydantic import BaseModel, Field
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# ---------------------------------------------------------------------------
-# Request / Response schemas
-# ---------------------------------------------------------------------------
-
 class ArticleRequest(BaseModel):
     title: str = Field(..., min_length=1, max_length=2000)
     body: str = Field("", max_length=20000)
@@ -46,11 +42,6 @@ class GraphRequest(BaseModel):
     root_id: str
     nodes: list[dict]
     edges: list[dict]
-
-
-# ---------------------------------------------------------------------------
-# App lifecycle — lazy-load heavy models
-# ---------------------------------------------------------------------------
 
 _pipeline = None
 _classifier = None
@@ -98,17 +89,11 @@ def get_pipeline():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Warm up pipeline on startup
     try:
         get_pipeline()
     except Exception as e:
         logger.error(f"Pipeline init failed: {e}")
     yield
-
-
-# ---------------------------------------------------------------------------
-# App
-# ---------------------------------------------------------------------------
 
 app = FastAPI(
     title="Fake News Detector API",
@@ -123,11 +108,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-# ---------------------------------------------------------------------------
-# Routes
-# ---------------------------------------------------------------------------
 
 @app.get("/health")
 async def health():

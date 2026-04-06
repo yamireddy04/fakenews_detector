@@ -13,17 +13,11 @@ from typing import Optional
 logger = logging.getLogger(__name__)
 
 
-# ---------------------------------------------------------------------------
-# Output model
-# ---------------------------------------------------------------------------
-
 @dataclass
 class DetectionResult:
-    # Final verdict
-    verdict: str               # "FAKE" | "REAL" | "UNVERIFIED"
-    confidence: float          # 0.0–1.0
+    verdict: str               
+    confidence: float          
 
-    # Per-component outputs
     bert_label: str
     bert_confidence: float
     bert_probabilities: dict
@@ -33,18 +27,12 @@ class DetectionResult:
     factcheck_summary: str
     factcheck_sources: list
 
-    graph_score: float         # 0=real, 1=fake (or -1 if no graph data)
+    graph_score: float         
     graph_features: dict
 
-    # Meta
     processing_time_ms: float
     components_used: list[str]
     explanation: str
-
-
-# ---------------------------------------------------------------------------
-# Fusion weights
-# ---------------------------------------------------------------------------
 
 DEFAULT_WEIGHTS = {
     "bert": 0.45,
@@ -52,32 +40,19 @@ DEFAULT_WEIGHTS = {
     "graph": 0.15,
 }
 
-# Map string labels to numeric fake probability
 LABEL_TO_FAKE_PROB = {
     "FAKE": 1.0,
     "UNVERIFIED": 0.5,
     "REAL": 0.0,
-    "NO_DATA": None,  # excluded from fusion
+    "NO_DATA": None,  
 }
 
-# ---------------------------------------------------------------------------
-# Verdict thresholds
-# These control how confident the model needs to be before saying FAKE or REAL
-# Raising FAKE_THRESHOLD reduces false positives (real news called fake)
-# Lowering REAL_THRESHOLD reduces false negatives (fake news called real)
-# ---------------------------------------------------------------------------
 
-FAKE_THRESHOLD = 0.72   # must be this confident to call FAKE (was 0.65)
-REAL_THRESHOLD = 0.30   # must be this confident to call REAL (was 0.35)
+FAKE_THRESHOLD = 0.72   
+REAL_THRESHOLD = 0.30   
 
-# Minimum BERT confidence required to trust its verdict
-# Below this, we soften the prediction toward UNVERIFIED
 MIN_BERT_CONFIDENCE = 0.60
 
-
-# ---------------------------------------------------------------------------
-# Pipeline
-# ---------------------------------------------------------------------------
 
 class FakeNewsDetectionPipeline:
     """
@@ -114,9 +89,6 @@ class FakeNewsDetectionPipeline:
         if graph_analyzer: available.append("graph")
         logger.info(f"Pipeline initialized with components: {available}")
 
-    # ------------------------------------------------------------------
-    # Main entry point
-    # ------------------------------------------------------------------
 
     def detect(
         self,
@@ -127,16 +99,12 @@ class FakeNewsDetectionPipeline:
     ) -> DetectionResult:
         t0 = time.perf_counter()
 
-        # --- 1. BERT classifier ---
         bert_result = self._run_bert(title, body)
 
-        # --- 2. Fact-check ---
         fc_result = self._run_factcheck(title, body, language)
 
-        # --- 3. Graph analysis ---
         graph_result, graph_feats = self._run_graph(propagation_graph)
 
-        # --- 4. Fusion ---
         verdict, confidence, components_used = self._fuse(
             bert_result, fc_result, graph_result
         )
@@ -163,10 +131,6 @@ class FakeNewsDetectionPipeline:
             components_used=components_used,
             explanation=explanation,
         )
-
-    # ------------------------------------------------------------------
-    # Component runners (each returns a normalized dict or fallback)
-    # ------------------------------------------------------------------
 
     def _run_bert(self, title: str, body: str) -> dict:
         if not self.classifier:
@@ -198,10 +162,6 @@ class FakeNewsDetectionPipeline:
             logger.error(f"Graph analysis failed: {e}")
             return -1.0, None
 
-    # ------------------------------------------------------------------
-    # Fusion logic
-    # ------------------------------------------------------------------
-
     def _fuse(
         self,
         bert: dict,
@@ -218,16 +178,12 @@ class FakeNewsDetectionPipeline:
         """
         components = {}
 
-        # BERT contribution — dampen low confidence predictions
         bert_label = bert.get("label", "UNKNOWN")
         bert_conf = bert.get("confidence", 0.0)
         if bert_label in LABEL_TO_FAKE_PROB and LABEL_TO_FAKE_PROB[bert_label] is not None:
             p = LABEL_TO_FAKE_PROB[bert_label]
 
-            # If BERT confidence is low, pull prediction toward 0.5 (uncertain)
-            # This prevents a 55% confident FAKE prediction from dominating
             if bert_conf < MIN_BERT_CONFIDENCE:
-                # Dampen: interpolate between 0.5 and the actual prediction
                 dampen_factor = bert_conf / MIN_BERT_CONFIDENCE
                 p_scaled = 0.5 + (p - 0.5) * bert_conf * dampen_factor
             else:
@@ -235,30 +191,24 @@ class FakeNewsDetectionPipeline:
 
             components["bert"] = p_scaled
 
-        # Fact-check contribution
         fc_verdict = fc.get("verdict", "NO_DATA")
         fc_conf = fc.get("confidence", 0.0)
         if fc_verdict in LABEL_TO_FAKE_PROB and LABEL_TO_FAKE_PROB[fc_verdict] is not None:
             p = LABEL_TO_FAKE_PROB[fc_verdict]
             p_scaled = 0.5 + (p - 0.5) * fc_conf
             components["factcheck"] = p_scaled
-
-        # Graph contribution
         if graph_score >= 0:
             components["graph"] = graph_score
 
         if not components:
             return "UNVERIFIED", 0.0, []
 
-        # Redistribute weights to active components only
         active_weight_sum = sum(self.weights.get(k, 0.1) for k in components)
         weighted_fake_prob = sum(
             v * self.weights.get(k, 0.1) / active_weight_sum
             for k, v in components.items()
         )
 
-        # Apply verdict thresholds
-        # Higher FAKE_THRESHOLD = less likely to wrongly call real news fake
         if weighted_fake_prob >= FAKE_THRESHOLD:
             verdict = "FAKE"
             confidence = weighted_fake_prob
@@ -267,7 +217,6 @@ class FakeNewsDetectionPipeline:
             confidence = 1.0 - weighted_fake_prob
         else:
             verdict = "UNVERIFIED"
-            # Confidence reflects how close to center (0.5) the prediction is
             confidence = 1.0 - abs(weighted_fake_prob - 0.5) * 2
 
         return verdict, confidence, list(components.keys())
@@ -301,10 +250,6 @@ class FakeNewsDetectionPipeline:
             parts.append("No data available from any component.")
         return " | ".join(parts)
 
-    # ------------------------------------------------------------------
-    # Batch detection
-    # ------------------------------------------------------------------
-
     def detect_batch(self, articles: list[dict]) -> list[DetectionResult]:
         """
         articles: [{"title": str, "body": str, "graph": dict|None}]
@@ -319,10 +264,6 @@ class FakeNewsDetectionPipeline:
             )
             results.append(r)
         return results
-
-    # ------------------------------------------------------------------
-    # Evaluation
-    # ------------------------------------------------------------------
 
     def evaluate(self, labelled_articles: list[dict]) -> dict:
         """

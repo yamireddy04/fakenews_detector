@@ -13,12 +13,6 @@ logger = logging.getLogger(__name__)
 
 LABEL_MAP = {0: "REAL", 1: "FAKE", 2: "UNVERIFIED"}
 
-
-# ---------------------------------------------------------------------------
-# LIAR Dataset  (Wang 2017)
-# Download: https://www.cs.ucsb.edu/~william/data/liar_dataset.zip
-# ---------------------------------------------------------------------------
-
 LIAR_LABEL_MAP = {
     "true": 0,
     "mostly-true": 0,
@@ -55,13 +49,6 @@ def load_liar(tsv_path: str | Path) -> list[dict]:
     logger.info(f"LIAR: loaded {len(records)} records from {tsv_path}")
     return records
 
-
-# ---------------------------------------------------------------------------
-# FakeNewsNet  (Shu et al. 2020)
-# Download: https://github.com/KaiDMML/FakeNewsNet
-# Structure: data/{politifact|gossipcop}/{fake|real}/<article_id>/news content.json
-# ---------------------------------------------------------------------------
-
 def load_fakenewsnet(data_dir: str | Path) -> list[dict]:
     data_dir = Path(data_dir)
     records = []
@@ -91,12 +78,6 @@ def load_fakenewsnet(data_dir: str | Path) -> list[dict]:
     logger.info(f"FakeNewsNet: loaded {len(records)} records from {data_dir}")
     return records
 
-
-# ---------------------------------------------------------------------------
-# CLEF 2023 CheckThat! Task 1
-# Download: https://gitlab.com/checkthat_lab/clef2023-checkthat-lab
-# ---------------------------------------------------------------------------
-
 def load_clef(jsonl_path: str | Path) -> list[dict]:
     records = []
     with open(jsonl_path, encoding="utf-8") as f:
@@ -114,11 +95,6 @@ def load_clef(jsonl_path: str | Path) -> list[dict]:
             )
     logger.info(f"CLEF: loaded {len(records)} records from {jsonl_path}")
     return records
-
-
-# ---------------------------------------------------------------------------
-# Generic CSV loader — bring-your-own-data
-# ---------------------------------------------------------------------------
 
 def load_csv(
     path: str | Path,
@@ -150,11 +126,6 @@ def load_csv(
                 }
             )
     return records
-
-
-# ---------------------------------------------------------------------------
-# Train / val / test split utility
-# ---------------------------------------------------------------------------
 
 def split_records(
     records: list[dict],

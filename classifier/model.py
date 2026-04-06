@@ -20,7 +20,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 LABELS = {0: "REAL", 1: "FAKE", 2: "UNVERIFIED"}
-MODEL_NAME = "xlm-roberta-base"  # swap to "xlm-roberta-large" for prod
+MODEL_NAME = "xlm-roberta-base" 
 
 
 class FakeNewsDataset(Dataset):
@@ -40,10 +40,9 @@ class FakeNewsDataset(Dataset):
 
     def __getitem__(self, idx):
         rec = self.records[idx]
-        # Concatenate headline + body with SEP if both present
         text = rec["text"]
         if "body" in rec and rec["body"]:
-            text = rec["text"] + " </s> " + rec["body"][:1000]  # truncate body
+            text = rec["text"] + " </s> " + rec["body"][:1000] 
 
         enc = self.tokenizer(
             text,
@@ -88,10 +87,6 @@ class FakeNewsClassifier:
             model_name, num_labels=num_labels
         ).to(self.device)
 
-    # ------------------------------------------------------------------
-    # Training
-    # ------------------------------------------------------------------
-
     def fine_tune(
         self,
         train_records: list[dict],
@@ -122,7 +117,6 @@ class FakeNewsClassifier:
         best_val_loss = float("inf")
 
         for epoch in range(epochs):
-            # --- Train ---
             self.model.train()
             total_loss = 0
             for batch in train_dl:
@@ -140,7 +134,6 @@ class FakeNewsClassifier:
 
             avg_train_loss = total_loss / len(train_dl)
 
-            # --- Validate ---
             val_loss, val_acc = self._evaluate(val_dl)
             history["train_loss"].append(avg_train_loss)
             history["val_loss"].append(val_loss)
@@ -173,10 +166,6 @@ class FakeNewsClassifier:
                 correct += (preds == batch["label"].to(self.device)).sum().item()
                 total += len(batch["label"])
         return total_loss / len(dataloader), correct / total
-
-    # ------------------------------------------------------------------
-    # Inference
-    # ------------------------------------------------------------------
 
     def predict(self, text: str, body: str = "") -> dict:
         """
@@ -238,9 +227,6 @@ class FakeNewsClassifier:
                 )
         return results
 
-    # ------------------------------------------------------------------
-    # Persistence
-    # ------------------------------------------------------------------
 
     def save(self, path: str | Path):
         path = Path(path)
